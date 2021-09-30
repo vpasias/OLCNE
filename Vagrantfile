@@ -228,7 +228,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       worker.vm.network "private_network", ip: ip_addr
       ips = 110 + i
       ips_addr = "192.168.199.#{ips}"
-      workers += "#{ips_addr},"
+#      workers += "#{ips_addr},"
       worker.vm.network "private_network", ip: ips_addr      
       if Vagrant.has_plugin?("vagrant-hosts")
         worker.vm.provision :hosts, :sync_hosts => true, :add_localhost_hostnames => false
@@ -249,7 +249,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       master.vm.network "private_network", ip: ip_addr
       ips = 100 + i
       ips_addr = "192.168.199.#{ips}"
-      masters += "#{ips_addr},"
+#      masters += "#{ips_addr},"
       master.vm.network "private_network", ip: ips_addr
       if Vagrant.has_plugin?("vagrant-hosts")
         master.vm.provision :hosts, :sync_hosts => true, :add_localhost_hostnames => false
