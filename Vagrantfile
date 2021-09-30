@@ -200,9 +200,12 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     vb.memory = MEMORY
     vb.cpus = CPUS
     vb.customize ["modifyvm", :id, "--groups", "/" + VB_GROUP]
+    vb.customize ["modifyvm", :id, "--chipset", "ich9"]
     vb.customize ["modifyvm", :id, "--nested-hw-virt", "on"]
+    vb.customize ["setextradata", :id, "VBoxInternal/CPUM/SSE4.1", "1"]
+    vb.customize ["setextradata", :id, "VBoxInternal/CPUM/SSE4.2", "1"]    
     if EXTRA_DISK
-      override.vm.disk :disk, size: '16GB', name: 'extra_disk'
+      override.vm.disk :disk, size: '200GB', name: 'extra_disk'
     end
   end
   config.vm.provider :libvirt do |lv|
@@ -223,6 +226,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       ip_addr = "192.168.99.#{ip}"
       workers += "#{ip_addr},"
       worker.vm.network "private_network", ip: ip_addr
+      ips = 110 + i
+      ips_addr = "192.168.199.#{ips}"
+      workers += "#{ips_addr},"
+      worker.vm.network "private_network", ip: ips_addr      
       if Vagrant.has_plugin?("vagrant-hosts")
         worker.vm.provision :hosts, :sync_hosts => true, :add_localhost_hostnames => false
       end
@@ -240,6 +247,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       ip_addr = "192.168.99.#{ip}"
       masters += "#{ip_addr},"
       master.vm.network "private_network", ip: ip_addr
+      ips = 100 + i
+      ips_addr = "192.168.199.#{ips}"
+      masters += "#{ips_addr},"
+      master.vm.network "private_network", ip: ips_addr
       if Vagrant.has_plugin?("vagrant-hosts")
         master.vm.provision :hosts, :sync_hosts => true, :add_localhost_hostnames => false
       end
