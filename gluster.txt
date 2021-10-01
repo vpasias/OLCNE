@@ -1,1 +1,2 @@
 # https://oracle.github.io/linux-labs/OLCNE-Gluster/
+# https://docs.oracle.com/en/operating-systems/oracle-linux/gluster-storage/gluster-heketi.html#gluster-heketi-cli
