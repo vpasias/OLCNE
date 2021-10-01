@@ -1,2 +1,42 @@
 # https://oracle.github.io/linux-labs/OLCNE-Gluster/
 # https://docs.oracle.com/en/operating-systems/oracle-linux/gluster-storage/gluster-heketi.html#gluster-heketi-cli
+
+vagrant plugin install vagrant-env && vagrant plugin install vagrant-hosts
+
+git clone https://github.com/vpasias/OLCNE.git && cd OLCNE
+
+vagrant up
+
+vagrant worker1 -c "sudo dnf install -y oracle-gluster-release-el8 && sudo dnf install -y glusterfs-server glusterfs-client" && \
+vagrant worker2 -c "sudo dnf install -y oracle-gluster-release-el8 && sudo dnf install -y glusterfs-server glusterfs-client" && \
+vagrant worker3 -c "sudo dnf install -y oracle-gluster-release-el8 && sudo dnf install -y glusterfs-server glusterfs-client"
+
+vagrant worker1 -c "sudo firewall-cmd --add-service=glusterfs --permanent && sudo firewall-cmd --reload" && \
+vagrant worker2 -c "sudo firewall-cmd --add-service=glusterfs --permanent && sudo firewall-cmd --reload" && \
+vagrant worker3 -c "sudo firewall-cmd --add-service=glusterfs --permanent && sudo firewall-cmd --reload"
+
+vagrant worker1 -c "sudo cp /etc/olcne/pki/production/ca.cert /etc/ssl/glusterfs.ca && sudo cp /etc/olcne/pki/production/node.key /etc/ssl/glusterfs.key && sudo cp /etc/olcne/pki/production/node.cert /etc/ssl/glusterfs.pem && sudo touch /var/lib/glusterd/secure-access" && \
+vagrant worker2 -c "sudo cp /etc/olcne/pki/production/ca.cert /etc/ssl/glusterfs.ca && sudo cp /etc/olcne/pki/production/node.key /etc/ssl/glusterfs.key && sudo cp /etc/olcne/pki/production/node.cert /etc/ssl/glusterfs.pem && sudo touch /var/lib/glusterd/secure-access" && \
+vagrant worker3 -c "sudo cp /etc/olcne/pki/production/ca.cert /etc/ssl/glusterfs.ca && sudo cp /etc/olcne/pki/production/node.key /etc/ssl/glusterfs.key && sudo cp /etc/olcne/pki/production/node.cert /etc/ssl/glusterfs.pem && sudo touch /var/lib/glusterd/secure-access"
+
+vagrant worker1 -c "sudo systemctl enable --now glusterd.service" && \
+vagrant worker2 -c "sudo systemctl enable --now glusterd.service" && \
+vagrant worker3 -c "sudo systemctl enable --now glusterd.service"
+
+vagrant master1 -c "sudo dnf install -y oracle-gluster-release-el8 && sudo dnf install -y heketi heketi-client"
+
+vagrant master1 -c "sudo firewall-cmd --add-port=8080/tcp --permanent && sudo firewall-cmd --reload"
+
+vagrant master1 -c "sudo ssh-keygen -m PEM -t rsa -b 4096 -q -f /etc/heketi/heketi_key -N ''"
+
+vagrant master1 -c "sudo ssh-copy-id -i /etc/heketi/heketi_key.pub worker1 && sudo ssh-copy-id -i /etc/heketi/heketi_key.pub worker2 && sudo ssh-copy-id -i /etc/heketi/heketi_key.pub" worker3"
+
+vagrant master1 -c "sudo chown heketi:heketi /etc/heketi/heketi_key*"
+
+vagrant master1 -c "sudo mv /etc/heketi/heketi.json /etc/heketi/old-heketi.json && sudo cp /vagrant/heketi.json /etc/heketi/heketi.json"
+
+vagrant master1 -c "sudo systemctl enable --now heketi.service"
+
+vagrant master1 -c "curl localhost:8080/hello"
+
+vagrant master1 -c "sudo cp /vagrant/topology.json /etc/heketi/topology.json"
