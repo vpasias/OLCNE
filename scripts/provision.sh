@@ -326,6 +326,9 @@ install_packages() {
     echo_do firewall-cmd --add-protocol=vrrp --permanent
   fi
   
+  # set the selinux current mode to Permissive
+  # setenforce permissive
+  
   # Allow etcd via firewalld
   echo_do firewall-cmd --add-port=2379/tcp --permanent
   echo_do firewall-cmd --add-port=2380/tcp --permanent
@@ -459,6 +462,7 @@ deploy_kubernetes() {
   msg "Create the Kubernetes module for ${OLCNE_ENV_NAME} "
   if [[ ${MULTI_MASTER} == 0 ]]; then
     # Single master
+    # consider selinux=permissive
     echo_do olcnectl module create \
       --environment-name "${OLCNE_ENV_NAME}" \
       --selinux enforcing \
@@ -473,6 +477,7 @@ deploy_kubernetes() {
       --restrict-service-externalip-tls-key=${EXTERNALIP_VALIDATION_CERT_DIR}/production/node.key
   else
     # HA Multi-master
+    # consider selinux=permissive
     echo_do olcnectl module create \
       --environment-name "${OLCNE_ENV_NAME}" \
       --selinux enforcing \
