@@ -287,6 +287,8 @@ install_packages() {
     echo_do dnf install -y olcnectl"${OLCNE_VERSION}" olcne-api-server"${OLCNE_VERSION}" olcne-utils"${OLCNE_VERSION}"
     echo_do systemctl enable olcne-api-server.service
     echo_do firewall-cmd --add-port=8091/tcp --permanent
+    echo_do firewall-cmd --add-port=2379/tcp --permanent
+    echo_do firewall-cmd --add-port=2380/tcp --permanent    
     echo_do firewall-cmd --add-masquerade --permanent
   fi
   if [[ ${MASTER} == 1 || ${WORKER} == 1 ]]; then
@@ -309,6 +311,8 @@ install_packages() {
     echo_do firewall-cmd --add-port=10250/tcp --permanent
     echo_do firewall-cmd --add-port=10255/tcp --permanent
     echo_do firewall-cmd --add-port=8472/udp --permanent
+    echo_do firewall-cmd --add-port=2379/tcp --permanent
+    echo_do firewall-cmd --add-port=2380/tcp --permanent    
     echo_do firewall-cmd --add-port=30000-32767/tcp --permanent
   fi
 
@@ -326,7 +330,10 @@ install_packages() {
     echo_do firewall-cmd --add-protocol=vrrp --permanent
 
   fi
-
+  
+  # Allow etcd via firewalld
+  echo_do firewall-cmd --add-port=2379/tcp --permanent
+  echo_do firewall-cmd --add-port=2380/tcp --permanent
   # Reload firewalld
   echo_do firewall-cmd --reload
 }
