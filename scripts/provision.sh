@@ -328,6 +328,7 @@ install_packages() {
   
   # set the selinux current mode to Permissive
   # setenforce permissive
+  # echo "SELINUX=permissive" > /etc/sysconfig/selinux
   
   # Allow etcd via firewalld
   echo_do firewall-cmd --add-port=2379/tcp --permanent
