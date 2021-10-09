@@ -29,3 +29,25 @@ vagrant ssh master1 -c "kubectl get pods -n kubevirt"
 
 vagrant ssh master1 -c "curl -L -o virtctl https://github.com/kubevirt/kubevirt/releases/download/${KUBEVIRT_VERSION}/virtctl-${KUBEVIRT_VERSION}-linux-amd64 && \
 chmod +x virtctl"
+
+### Testing
+# Creating a virtual machine
+vagrant ssh master1 -c "kubectl apply -f https://raw.githubusercontent.com/kubevirt/demo/master/manifests/vm.yaml"
+
+# After deployment you can manage VMs using the usual verbs:
+vagrant ssh master1 -c "kubectl describe vm testvm"
+
+# To start a VM you can use, this will create a VM instance (VMI)
+vagrant ssh master1 -c "./virtctl start testvm"
+
+# The interested reader can now optionally inspect the instance
+vagrant ssh master1 -c "kubectl describe vmi testvm"
+
+# Connect to the serial console
+# vagrant ssh master1
+# ./virtctl console testvm
+# To shut the VM down again:
+# vagrant ssh master1 -c "./virtctl stop testvm"
+# To delete
+# vagrant ssh master1 -c "kubectl delete vm testvm"
+
