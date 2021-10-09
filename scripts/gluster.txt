@@ -112,7 +112,7 @@ vagrant ssh master1 -c "heketi-cli --secret "gprm8350" --user admin cluster list
 
 vagrant ssh master1 -c "kubectl create secret generic heketi-admin --type='kubernetes.io/glusterfs' --from-literal=key='gprm8350' --namespace=default"
 
-vagrant ssh master1 -c "cat << EOF | kubectl apply -f -
+vagrant ssh master1 -c 'cat << EOF | kubectl apply -f -
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
@@ -126,7 +126,7 @@ parameters:
   restuser: "admin"
   secretNamespace: "default"
   secretName: "heketi-admin"
-EOF"
+EOF'
 
 vagrant ssh master1 -c "for x in {0..5}; do
 cat << EOF | kubectl apply -f -
