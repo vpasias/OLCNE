@@ -1,11 +1,25 @@
 # https://oracle.github.io/linux-labs/OLCNE-Gluster/
 # https://docs.oracle.com/en/operating-systems/oracle-linux/gluster-storage/gluster-heketi.html#gluster-heketi-cli
 
-vagrant plugin install vagrant-env && vagrant plugin install vagrant-hosts
-
-git clone https://github.com/vpasias/OLCNE.git && cd OLCNE
-
-vagrant up
+vagrant master1 -c "cat << EOF | sudo tee /etc/hosts
+127.0.0.1 localhost
+192.168.99.100 operator.vagrant.vm operator
+192.168.99.101 master1.vagrant.vm master1
+192.168.199.101 master1.vagrant.vm master1
+192.168.99.102 master2.vagrant.vm master2
+192.168.199.102 master2.vagrant.vm master2
+192.168.99.113 worker3.vagrant.vm worker3
+192.168.199.113 worker3.vagrant.vm worker3
+192.168.99.112 worker2.vagrant.vm worker2
+192.168.199.112 worker2.vagrant.vm worker2
+192.168.99.103 master3.vagrant.vm master3
+192.168.199.103 master3.vagrant.vm master3
+192.168.99.111 worker1.vagrant.vm worker1
+192.168.199.111 worker1.vagrant.vm worker1
+192.168.199.111 storage1.vagrant.vm storage1
+192.168.199.112 storage2.vagrant.vm storage2 
+192.168.199.113 storage3.vagrant.vm storage3
+EOF"
 
 vagrant worker1 -c "sudo dnf install -y oracle-gluster-release-el8 && sudo dnf install -y glusterfs-server glusterfs-client" && \
 vagrant worker2 -c "sudo dnf install -y oracle-gluster-release-el8 && sudo dnf install -y glusterfs-server glusterfs-client" && \
@@ -38,26 +52,6 @@ vagrant master1 -c "sudo mv /etc/heketi/heketi.json /etc/heketi/old-heketi.json 
 vagrant master1 -c "sudo systemctl enable --now heketi.service"
 
 vagrant master1 -c "curl localhost:8080/hello"
-
-vagrant master1 -c "cat << EOF | sudo tee /etc/hosts
-127.0.0.1 localhost
-192.168.99.100 operator.vagrant.vm operator
-192.168.99.101 master1.vagrant.vm master1
-192.168.199.101 master1.vagrant.vm master1
-192.168.99.102 master2.vagrant.vm master2
-192.168.199.102 master2.vagrant.vm master2
-192.168.99.113 worker3.vagrant.vm worker3
-192.168.199.113 worker3.vagrant.vm worker3
-192.168.99.112 worker2.vagrant.vm worker2
-192.168.199.112 worker2.vagrant.vm worker2
-192.168.99.103 master3.vagrant.vm master3
-192.168.199.103 master3.vagrant.vm master3
-192.168.99.111 worker1.vagrant.vm worker1
-192.168.199.111 worker1.vagrant.vm worker1
-192.168.199.111 storage1.vagrant.vm storage1
-192.168.199.112 storage2.vagrant.vm storage2 
-192.168.199.113 storage3.vagrant.vm storage3
-EOF"
 
 vagrant master1 -c "sudo cp /vagrant/scripts/topology.json /etc/heketi/topology.json"
 
