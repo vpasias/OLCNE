@@ -226,10 +226,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       ip_addr = "192.168.99.#{ip}"
       workers += "#{ip_addr},"
       worker.vm.network "private_network", ip: ip_addr
-#      ips = 110 + i
-#      ips_addr = "192.168.199.#{ips}"
+      ips = 110 + i
+      ips_addr = "192.168.199.#{ips}"
 #      workers += "#{ips_addr},"
-#      worker.vm.network "private_network", ip: ips_addr      
+      worker.vm.network "private_network", ip: ips_addr      
       if Vagrant.has_plugin?("vagrant-hosts")
         worker.vm.provision :hosts, :sync_hosts => true, :add_localhost_hostnames => false
       end
@@ -247,10 +247,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       ip_addr = "192.168.99.#{ip}"
       masters += "#{ip_addr},"
       master.vm.network "private_network", ip: ip_addr
-#      ips = 100 + i
-#      ips_addr = "192.168.199.#{ips}"
+      ips = 100 + i
+      ips_addr = "192.168.199.#{ips}"
 #      masters += "#{ips_addr},"
-#      master.vm.network "private_network", ip: ips_addr
+      master.vm.network "private_network", ip: ips_addr
       if Vagrant.has_plugin?("vagrant-hosts")
         master.vm.provision :hosts, :sync_hosts => true, :add_localhost_hostnames => false
       end
