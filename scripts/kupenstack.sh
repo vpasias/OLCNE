@@ -44,6 +44,10 @@ vagrant ssh master1 -c "kubectl apply -f https://raw.githubusercontent.com/Kupen
 
 vagrant ssh master1 -c "kubectl apply -f https://raw.githubusercontent.com/Kupenstack/kupenstack/main/config/demo2/kupenstack-controller-manager.yaml"
 
+sleep 360
+
+vagrant ssh master1 -c "kubectl get pods -n kupenstack"
+
 vagrant ssh master1 -c "cat << EOF | kubectl apply -f -
 apiVersion: kupenstack.io/v1alpha1
 kind: Image
