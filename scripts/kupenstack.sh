@@ -29,13 +29,13 @@ data:
         namespace: default
 
       # List of k8s nodes to disable for osk cluster.
-      nodes:
-        - name: worker1.vagrant.vm
-          type: control,compute
-        - name: worker2.vagrant.vm
-          type: control,compute
-        - name: worker3.vagrant.vm
-          type: control,compute
+      # nodes:
+      #  - name: worker1.vagrant.vm
+      #    type: control,compute
+      #  - name: worker2.vagrant.vm
+      #    type: control,compute
+      #  - name: worker3.vagrant.vm
+      #    type: control,compute
 EOF"
 
 vagrant ssh master1 -c "kubectl config set-context --current --namespace=kupenstack"
