@@ -64,9 +64,9 @@ vagrant ssh master3 -c "cat << EOF | sudo tee /etc/hosts
 192.168.199.113 storage3.vagrant.vm storage3
 EOF"
 
-vagrant ssh worker1 -c "sudo dnf install -y oracle-gluster-release-el8 && sudo dnf install -y glusterfs-server glusterfs-client" && \
-vagrant ssh worker2 -c "sudo dnf install -y oracle-gluster-release-el8 && sudo dnf install -y glusterfs-server glusterfs-client" && \
-vagrant ssh worker3 -c "sudo dnf install -y oracle-gluster-release-el8 && sudo dnf install -y glusterfs-server glusterfs-client"
+vagrant ssh worker1 -c "sudo dnf install -y oracle-gluster-release-el8 && sudo dnf install -y glusterfs-server glusterfs-client git vim wget curl" && \
+vagrant ssh worker2 -c "sudo dnf install -y oracle-gluster-release-el8 && sudo dnf install -y glusterfs-server glusterfs-client git vim wget curl" && \
+vagrant ssh worker3 -c "sudo dnf install -y oracle-gluster-release-el8 && sudo dnf install -y glusterfs-server glusterfs-client git vim wget curl"
 
 vagrant ssh worker1 -c "sudo firewall-cmd --add-service=glusterfs --permanent && sudo firewall-cmd --reload" && \
 vagrant ssh worker2 -c "sudo firewall-cmd --add-service=glusterfs --permanent && sudo firewall-cmd --reload" && \
