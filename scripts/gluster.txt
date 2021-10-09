@@ -40,16 +40,23 @@ vagrant master1 -c "sudo systemctl enable --now heketi.service"
 vagrant master1 -c "curl localhost:8080/hello"
 
 vagrant master1 -c "cat << EOF | sudo tee /etc/hosts
-127.0.0.1         localhost
-192.168.99.101    master1.vagrant.vm
-192.168.99.102    master2.vagrant.vm
-192.168.99.103    master3.vagrant.vm
-192.168.99.111    worker1.vagrant.vm
-192.168.99.112    worker2.vagrant.vm
-192.168.99.113    worker3.vagrant.vm
-192.168.199.111   storage1.vagrant.vm
-192.168.199.112   storage2.vagrant.vm
-192.168.199.113   storage3.vagrant.vm
+127.0.0.1 localhost
+192.168.99.100 operator.vagrant.vm operator
+192.168.99.101 master1.vagrant.vm master1
+192.168.199.101 master1.vagrant.vm master1
+192.168.99.102 master2.vagrant.vm master2
+192.168.199.102 master2.vagrant.vm master2
+192.168.99.113 worker3.vagrant.vm worker3
+192.168.199.113 worker3.vagrant.vm worker3
+192.168.99.112 worker2.vagrant.vm worker2
+192.168.199.112 worker2.vagrant.vm worker2
+192.168.99.103 master3.vagrant.vm master3
+192.168.199.103 master3.vagrant.vm master3
+192.168.99.111 worker1.vagrant.vm worker1
+192.168.199.111 worker1.vagrant.vm worker1
+192.168.199.111 storage1.vagrant.vm storage1
+192.168.199.112 storage2.vagrant.vm storage2 
+192.168.199.113 storage3.vagrant.vm storage3
 EOF"
 
 vagrant master1 -c "sudo cp /vagrant/scripts/topology.json /etc/heketi/topology.json"
