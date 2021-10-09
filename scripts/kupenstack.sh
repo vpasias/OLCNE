@@ -27,15 +27,14 @@ data:
       defaultProfile:
         name: occp
         namespace: default
-
       # List of k8s nodes to disable for osk cluster.
-      # nodes:
-      #  - name: worker1.vagrant.vm
-      #    type: control,compute
-      #  - name: worker2.vagrant.vm
-      #    type: control,compute
-      #  - name: worker3.vagrant.vm
-      #    type: control,compute
+      nodes:
+        - name: worker1.vagrant.vm
+          type: control,compute
+        - name: worker2.vagrant.vm
+          type: control,compute
+        - name: worker3.vagrant.vm
+          type: control,compute
 EOF"
 
 vagrant ssh master1 -c "kubectl config set-context --current --namespace=kupenstack"
@@ -81,3 +80,8 @@ EOF"
 vagrant ssh master1 -c "kubectl get virtualmachines && kubectl get vm -o wide && \
 kubectl get networks && kubectl get flavors && kubectl get images && \
 kubectl get keypairs -o wide && kubectl describe ns default"
+
+# Delete deployment
+# vagrant ssh master1 -c "kubectl delete -f https://raw.githubusercontent.com/Kupenstack/kupenstack/main/config/demo2/kupenstack-controller-manager.yaml"
+# vagrant ssh master1 -c "kubectl delete -f https://raw.githubusercontent.com/Kupenstack/kupenstack/main/config/demo2/occp.yaml"
+# vagrant ssh master1 -c "kubectl delete -f https://raw.githubusercontent.com/Kupenstack/kupenstack/main/config/demo2/crds.yaml"
