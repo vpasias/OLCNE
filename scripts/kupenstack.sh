@@ -35,7 +35,7 @@ data:
         - name: worker2.vagrant.vm
           type: control,compute
         - name: worker3.vagrant.vm
-          type: control,compute            
+          type: control,compute
 EOF"
 
 vagrant ssh master1 -c "kubectl apply -f https://raw.githubusercontent.com/Kupenstack/kupenstack/main/config/demo2/occp.yaml"
