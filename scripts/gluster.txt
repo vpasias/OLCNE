@@ -104,8 +104,6 @@ vagrant ssh master1 -c "heketi-cli --user admin --secret "gprm8350" topology loa
 vagrant ssh master1 -c "heketi-cli --secret "gprm8350" --user admin node list"
 
 vagrant ssh master1 -c "heketi-cli --secret "gprm8350" --user admin cluster list && heketi-cli --secret "gprm8350" --user admin topology info && heketi-cli --secret "gprm8350" --user admin volume list"
-# Volume Id:2ab33ebc348c2c6dcc3819b2691d0267
-# vagrant ssh master1 -c "heketi-cli --secret "gprm8350" --user admin volume info 2ab33ebc348c2c6dcc3819b2691d0267"
 
 # vagrant ssh master1 -c "heketi-cli --secret "gprm8350" --user admin volume create --size=50 --replica=3"
 # vagrant ssh master1 -c "heketi-cli --secret "gprm8350" --user admin volume list"
@@ -144,6 +142,10 @@ EOF
 done'
 
 vagrant ssh master1 -c "kubectl get pvc"
+
+vagrant ssh master1 -c "heketi-cli --secret "gprm8350" --user admin volume list"
+# Volume Id:2ab33ebc348c2c6dcc3819b2691d0267
+# vagrant ssh master1 -c "heketi-cli --secret "gprm8350" --user admin volume info 2ab33ebc348c2c6dcc3819b2691d0267"
 
 vagrant ssh master1 -c "cat << EOF | kubectl apply -f -
 apiVersion: apps/v1
