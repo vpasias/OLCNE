@@ -37,6 +37,10 @@ vagrant ssh worker1 -c "sudo systemctl enable --now glusterd.service" && \
 vagrant ssh worker2 -c "sudo systemctl enable --now glusterd.service" && \
 vagrant ssh worker3 -c "sudo systemctl enable --now glusterd.service"
 
+vagrant ssh worker1 -c "sudo systemctl status glusterd.service" && \
+vagrant ssh worker2 -c "sudo systemctl status glusterd.service" && \
+vagrant ssh worker3 -c "sudo systemctl status glusterd.service"
+
 vagrant ssh master1 -c "sudo dnf install -y oracle-gluster-release-el8 && sudo dnf install -y heketi heketi-client"
 
 vagrant ssh master1 -c "sudo firewall-cmd --add-port=8080/tcp --permanent && sudo firewall-cmd --reload"
