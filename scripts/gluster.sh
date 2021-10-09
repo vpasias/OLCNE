@@ -150,6 +150,7 @@ vagrant ssh master1 -c "heketi-cli --secret "gprm8350" --user admin volume list"
 # Volume Id:2ab33ebc348c2c6dcc3819b2691d0267
 # vagrant ssh master1 -c "heketi-cli --secret "gprm8350" --user admin volume info 2ab33ebc348c2c6dcc3819b2691d0267"
 
+# Testing
 vagrant ssh master1 -c "cat << EOF | kubectl apply -f -
 apiVersion: apps/v1
 kind: Deployment
