@@ -14,4 +14,19 @@ sleep 60
 vagrant ssh master1 -c "kubectl get pods -n monitoring && \
 kubectl get svc -n monitoring"
 
+# Delete
 # kubectl delete --ignore-not-found=true -f manifests/ -f manifests/setup
+ 
+# Grafana Dashboard access
+# kubectl --namespace monitoring port-forward svc/grafana 3000
+# Then access Grafana dashboard on your local browser on URL:  http://localhost:3000
+# Username: admin
+# Password: admin
+
+# Prometheus Dashboard
+# kubectl --namespace monitoring port-forward svc/prometheus-k8s 9090
+# And web console is accessible through the URL: http://localhost:9090
+
+# Alert Manager Dashboard
+# kubectl --namespace monitoring port-forward svc/alertmanager-main 9093
+# Access URL is http://localhost:9093
