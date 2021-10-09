@@ -31,10 +31,10 @@ data:
       nodes:
         - name: worker1.vagrant.vm
           type: control,compute
-        - name: worker2.vagrant.vm
-          type: control,compute
-        - name: worker3.vagrant.vm
-          type: control,compute
+  #      - name: worker2.vagrant.vm
+  #        type: control,compute
+  #      - name: worker3.vagrant.vm
+  #        type: control,compute
 EOF"
 
 #vagrant ssh master1 -c "kubectl config set-context --current --namespace=kupenstack"
