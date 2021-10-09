@@ -47,7 +47,7 @@ vagrant ssh master1 -c "sudo firewall-cmd --add-port=8080/tcp --permanent && sud
 
 vagrant ssh master1 -c "sudo ssh-keygen -m PEM -t rsa -b 4096 -q -f /etc/heketi/heketi_key -N ''"
 
-vagrant ssh master1 -c "sudo ssh-copy-id -i /etc/heketi/heketi_key.pub worker1 && sudo ssh-copy-id -i /etc/heketi/heketi_key.pub worker2 && sudo ssh-copy-id -i /etc/heketi/heketi_key.pub" worker3"
+vagrant ssh master1 -c "sudo ssh-copy-id -i /etc/heketi/heketi_key.pub worker1 && sudo ssh-copy-id -i /etc/heketi/heketi_key.pub worker2 && sudo ssh-copy-id -i /etc/heketi/heketi_key.pub worker3"
 
 vagrant ssh master1 -c "sudo chown heketi:heketi /etc/heketi/heketi_key*"
 
