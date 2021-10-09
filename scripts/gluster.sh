@@ -1,3 +1,6 @@
+#!/bin/bash
+#
+# Dynamic provisioning of Gluster volumes with the Kubernetes module of Oracle Linux Cloud Native Environment
 # https://oracle.github.io/linux-labs/OLCNE-Gluster/
 # https://docs.oracle.com/en/operating-systems/oracle-linux/gluster-storage/gluster-heketi.html#gluster-heketi-cli
 
@@ -137,7 +140,7 @@ spec:
   - ReadWriteMany
  resources:
   requests:
-    storage: 1Gi
+    storage: 10Gi
 EOF
 done'
 
@@ -179,7 +182,7 @@ spec:
 EOF"
 
 vagrant ssh master1 -c "kubectl get pod -l run=demo-nginx"
-# pod name: demo-nginx-75fd7f5594-bsqf4
 
-vagrant ssh master1 -c "kubectl exec demo-nginx-75fd7f5594-bsqf4 -ti -- mount -t fuse.glusterfs"
-#vagrant ssh worker1 -c "sudo gluster volume status vol_6fec8524bfeedfe8c11e68a61366761a"
+#pod name: demo-nginx-75fd7f5594-bsqf4
+# vagrant ssh master1 -c "kubectl exec demo-nginx-75fd7f5594-bsqf4 -ti -- mount -t fuse.glusterfs"
+# vagrant ssh worker1 -c "sudo gluster volume status vol_6fec8524bfeedfe8c11e68a61366761a"
