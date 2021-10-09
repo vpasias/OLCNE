@@ -182,3 +182,4 @@ vagrant ssh master1 -c "kubectl get pod -l run=demo-nginx"
 # pod name: demo-nginx-75fd7f5594-bsqf4
 
 vagrant ssh master1 -c "kubectl exec demo-nginx-75fd7f5594-bsqf4 -ti -- mount -t fuse.glusterfs"
+#vagrant ssh worker1 -c "sudo gluster volume status vol_6fec8524bfeedfe8c11e68a61366761a"
