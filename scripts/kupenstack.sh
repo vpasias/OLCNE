@@ -43,7 +43,7 @@ data:
           type: compute
 EOF"
 
-vagrant ssh master1 -c "kubectl config set-context --current --namespace=kupenstack"
+#vagrant ssh master1 -c "kubectl config set-context --current --namespace=kupenstack"
 
 vagrant ssh master1 -c "kubectl apply -f https://raw.githubusercontent.com/Kupenstack/kupenstack/main/config/demo2/occp.yaml"
 
