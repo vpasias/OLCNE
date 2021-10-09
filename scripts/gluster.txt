@@ -128,7 +128,7 @@ parameters:
   secretName: "heketi-admin"
 EOF'
 
-vagrant ssh master1 -c "for x in {0..5}; do
+vagrant ssh master1 -c 'for x in {0..5}; do
 cat << EOF | kubectl apply -f -
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -141,7 +141,7 @@ spec:
   requests:
     storage: 1Gi
 EOF
-done"
+done'
 
 vagrant ssh master1 -c "kubectl get pvc"
 
