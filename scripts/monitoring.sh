@@ -15,7 +15,10 @@ vagrant ssh master1 -c "kubectl get pods -n monitoring && \
 kubectl get svc -n monitoring"
 
 # Install Metrics Server
-# vagrant ssh master1 -c "kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml"
+vagrant ssh master1 -c "kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml"
+
+vagrant ssh master1 -c "kubectl get pods -n monitoring && \
+kubectl get svc -n monitoring"
 
 # Delete
 # kubectl delete --ignore-not-found=true -f manifests/ -f manifests/setup
