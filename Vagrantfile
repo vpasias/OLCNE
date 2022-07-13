@@ -1,0 +1,346 @@
+#
+# Vagrantfile for Oracle Cloud Native Environment
+#
+# Copyright (c) 2019, 2021 Oracle and/or its affiliates.
+# Licensed under the Universal Permissive License v 1.0 as shown at
+# https://oss.oracle.com/licenses/upl.
+#
+# Description: Deploys an Oracle Cloud Native Environment
+#
+# DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+#
+
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# This Vagrantfile creates an Oracle Cloud Native Environment and
+# deploys the Kubernetes module to the master and worker nodes.
+# VMs communicate via a private network using subnet 192.168.99.* (by default):
+#   - HA Master IP: 192.168.99.99          (Virtual IP, when in HA mode)
+#   - Operator    : 192.168.99.100         (Optional, none by default)
+#   - Master i    : 192.168.99.(100+i)     (1 by default, 3 in HA mode)
+#   - Worker i    : 192.168.99.(110+i)     (2 by default)
+#   - MetalLB Pool: 192.168.99.240 - 192.168.99.250
+#
+# Optional plugins:
+#     vagrant-hosts (maintains /etc/hosts for the VMs)
+#     vagrant-env (use .env files for configuration)
+#     vagrant-proxyconf (if you don't have direct access to the Internet)
+#         see https://github.com/tmatilai/vagrant-proxyconf for configuration
+#
+
+# Required for the Disks feature
+Vagrant.require_version ">= 2.2.8"
+ENV['VAGRANT_EXPERIMENTAL'] = 'disks'
+
+# Vagrantfile API/syntax version. Don't touch unless you know what you're doing!
+VAGRANTFILE_API_VERSION = "2"
+ENV['VAGRANT_NO_PARALLEL'] = 'yes'
+
+# Box metadata location and box name
+BOX_URL = "https://oracle.github.io/vagrant-projects/boxes"
+BOX_NAME = "oraclelinux/8"
+
+# Define constants
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+  # Use vagrant-env plugin if available
+  if Vagrant.has_plugin?("vagrant-env")
+    config.env.load(".env.local", ".env") # enable the plugin
+  end
+
+  # Default Private Network Subnet
+  SUBNET = default_s('SUBNET', '192.168.99')
+  
+  # vCPUS and Memory for the VMs
+  OPERATOR_CPUS = default_i('OPERATOR_CPUS', 1)
+  OPERATOR_MEMORY = default_i("OPERATOR_MEMORY", 1024)
+  MASTER_CPUS = default_i('MASTER_CPUS', 2)
+  MASTER_MEMORY = default_i("MASTER_MEMORY", 2048)
+  WORKER_CPUS = default_i('WORKER_CPUS', 1)
+  WORKER_MEMORY = default_i("WORKER_MEMORY", 1024)
+
+  # Group VirtualBox containers
+  VB_GROUP = default_s("VB_GROUP", "OCNE")
+
+  # Multi-master setup. Deploy 3 masters in HA mode.
+  MULTI_MASTER = default_b('MULTI_MASTER', false)
+
+  # Separate operator node for the Oracle Cloud Native Environment
+  # Platform API Server and Platform Agent (default is to install the
+  # components on the (first) master node
+  #
+  # If multi-master is enabled, the standalone operator is automatically
+  # enabled for routing purposes
+  if MULTI_MASTER
+    STANDALONE_OPERATOR = true
+  else
+    STANDALONE_OPERATOR = default_b('STANDALONE_OPERATOR', false)
+  end
+
+  # Creates an extra disk (/dev/sdb) so it can be used as a
+  # Gluster Storage for Kubernetes Persistent Volumes
+  EXTRA_DISK = default_b('EXTRA_DISK', false)
+
+  # Override number of masters to deploy
+  # This should not be changed -- for development purpose
+  NB_MASTERS = default_i('NB_MASTERS', MULTI_MASTER ? 3 : 1)
+
+  # Number of worker nodes to provision
+  NB_WORKERS = default_i('NB_WORKERS', 2)
+
+  # Bind the kubectl proxy from the (first) master to the vagrant host
+  BIND_PROXY = default_b('BIND_PROXY', false)
+
+  # Additional yum channel to consider (e.g. local repo)
+  YUM_REPO = default_s('YUM_REPO', '')
+
+  # Add Oracle Cloud Native Environment developer channel
+  OCNE_DEV = default_b('OCNE_DEV', false)
+
+  # Set the default OCNE_ENV_NAME and OCNE_CLUSTER_NAMEs
+  OCNE_ENV_NAME = default_s('OCNE_ENV_NAME', 'ocne-env')
+  OCNE_CLUSTER_NAME = default_s('OCNE_CLUSTER_NAME', 'ocne-cluster')
+
+  # Container registry for Oracle Cloud Native Environment images
+  # You can use registry mirrors in a region close to you.
+  # Check the README.md file for more details.
+  REGISTRY_OCNE = default_s('REGISTRY_OCNE', 'container-registry.oracle.com/olcne')
+
+  # Deploy Istio?
+  DEPLOY_ISTIO = default_b('DEPLOY_ISTIO', false)
+
+  # Deploy MetalLB?
+  DEPLOY_METALLB = default_b('DEPLOY_METALLB', false)
+
+  # Deploy Gluster?
+  DEPLOY_GLUSTER = default_b('DEPLOY_GLUSTER', false)
+
+  # Helm is required to deploy Istio, MetalLB or Gluster. Otherwise it's optional
+  if DEPLOY_ISTIO or DEPLOY_METALLB or DEPLOY_GLUSTER
+    DEPLOY_HELM = true
+  else
+    DEPLOY_HELM = default_b('DEPLOY_HELM', false)
+  end
+
+  HELM_MODULE_NAME = default_s('HELM_MODULE_NAME', 'ocne-helm')
+  ISTIO_MODULE_NAME = default_s('ISTIO_MODULE_NAME', 'ocne-istio')
+  METALLB_MODULE_NAME = default_s('METALLB_MODULE_NAME', 'ocne-metallb')
+  GLUSTER_MODULE_NAME = default_s('GLUSTER_MODULE_NAME', 'ocne-gluster')
+
+  # Use specific component version (mainly used for development)
+  NGINX_IMAGE = default_s('NGINX_IMAGE', 'nginx:1.17.7')
+
+  # Update Base OS
+  UPDATE_OS = default_b('UPDATE_OS', false)
+  
+  # Verbose console
+  VERBOSE = default_b('VERBOSE', false)
+end
+
+# Convenience methods
+def default_s(key, default)
+  ENV[key] && ! ENV[key].empty? ? ENV[key] : default
+end
+
+def default_i(key, default)
+  default_s(key, default).to_i
+end
+
+def default_b(key, default)
+  default_s(key, default).to_s.downcase == "true"
+end
+
+def ensure_scheme(url)
+  (url =~ /.*:\/\// ? "" : "http://") + url
+end
+
+def update_os(vm)
+  if UPDATE_OS
+    vm.provision :shell,
+                 inline: "dnf -y update",
+                 privileged: true,
+                 reboot: true
+  end
+end
+
+def provision_vm(vm, vm_args)
+  args = vm_args.clone
+  args.push("--ocne-environment-name", OCNE_ENV_NAME)
+  args.push("--ocne-cluster-name", OCNE_CLUSTER_NAME)
+  args.push("--multi-master") if MULTI_MASTER
+  args.push("--repo", YUM_REPO) unless YUM_REPO == ""
+  args.push("--ocne-dev") if OCNE_DEV
+  args.push("--with-helm") if DEPLOY_HELM
+  args.push("--helm-module-name", HELM_MODULE_NAME) if DEPLOY_HELM
+  args.push("--with-istio") if DEPLOY_ISTIO
+  args.push("--istio-module-name", ISTIO_MODULE_NAME) if DEPLOY_ISTIO
+  args.push("--with-metallb") if DEPLOY_METALLB
+  args.push("--metallb-module-name", METALLB_MODULE_NAME) if DEPLOY_METALLB
+  args.push("--with-gluster") if DEPLOY_GLUSTER
+  args.push("--gluster-module-name", GLUSTER_MODULE_NAME) if DEPLOY_GLUSTER
+  args.push("--registry-ocne", REGISTRY_OCNE) if REGISTRY_OCNE
+  args.push("--verbose") if VERBOSE
+  vm.provision "shell",
+    path: "scripts/provision.sh",
+    args: args,
+    privileged: false
+end
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+
+  config.vm.box = BOX_NAME
+  config.vm.box_url = "#{BOX_URL}/#{BOX_NAME}.json"
+
+  # If we use the vagrant-proxyconf plugin, we should not proxy k8s/local IPs
+  # Unfortunately we can't use CIDR with no_proxy, so we have to enumerate and
+  # 'blacklist' *all* IPs
+  if Vagrant.has_plugin?("vagrant-proxyconf")
+    has_proxy = false
+    ["http_proxy", "HTTP_PROXY"].each do |proxy_var|
+      if proxy = ENV[proxy_var]
+        puts "HTTP proxy: " + proxy
+        config.proxy.http = ensure_scheme(proxy)
+        has_proxy = true
+        break
+      end
+    end
+
+    ["https_proxy", "HTTPS_PROXY"].each do |proxy_var|
+      if proxy = ENV[proxy_var]
+        puts "HTTPS proxy: " + proxy
+        config.proxy.https = ensure_scheme(proxy)
+        has_proxy = true
+        break
+      end
+    end
+
+    if has_proxy
+      # Only consider no_proxy if we have proxies defined.
+      no_proxy = ""
+      ["no_proxy", "NO_PROXY"].each do |proxy_var|
+        if ENV[proxy_var]
+          no_proxy = ENV[proxy_var]
+          puts "No proxy: " + no_proxy
+          no_proxy += ","
+          break
+        end
+      end
+      config.proxy.no_proxy = no_proxy + "localhost,.vagrant.vm," + (".0"..".255").to_a.join(",")
+    end
+  end
+
+  # Provider-specific configuration -- VirtualBox
+  config.vm.provider :virtualbox do |vb|
+    vb.linked_clone = false
+    vb.customize ["modifyvm", :id, "--groups", "/" + VB_GROUP]
+    vb.customize ["modifyvm", :id, "--chipset", "ich9"]
+    vb.customize ["modifyvm", :id, "--nested-hw-virt", "on"]
+    vb.customize ["setextradata", :id, "VBoxInternal/CPUM/SSE4.1", "1"]
+    vb.customize ["setextradata", :id, "VBoxInternal/CPUM/SSE4.2", "1"]      
+  end
+  config.vm.provider :libvirt do |lv|
+    lv.nested = true
+  end
+
+  # Workers provisioning
+  workers = ""
+  (1..NB_WORKERS).each do |i|
+    config.vm.define "worker#{i}" do |worker|
+      worker.vm.hostname = "worker#{i}.vagrant.vm"
+      ip = 110 + i
+      ip_addr = "#{SUBNET}.#{ip}"
+      workers += "#{ip_addr},"
+      worker.vm.network :private_network, ip: ip_addr
+      if Vagrant.has_plugin?("vagrant-hosts")
+        worker.vm.provision :hosts, :sync_hosts => true, :add_localhost_hostnames => false
+      end
+      worker.vm.provider :virtualbox do |vb, override|
+        vb.name = "worker#{i}"
+        vb.memory = WORKER_MEMORY
+        vb.cpus = WORKER_CPUS
+        if EXTRA_DISK
+          override.vm.disk :disk, size: '16GB', name: 'extra_disk'
+        end
+      end
+      config.vm.provider :libvirt do |lv|
+        lv.memory = WORKER_MEMORY
+        lv.cpus = WORKER_CPUS
+        if EXTRA_DISK
+          lv.storage :file, :size => '16G', :type => 'qcow2'
+        end
+      end
+      # Update OS if UPDATE_OS=true
+      update_os(worker.vm)
+      # Provisioning: Worker Node
+      provision_vm(worker.vm, ["--worker"])
+    end
+  end
+
+  # Masters provisioning
+  masters = ""
+  NB_MASTERS.downto(1) do |i|
+    config.vm.define "master#{i}" do |master|
+      master.vm.hostname = "master#{i}.vagrant.vm"
+      ip = 100 + i
+      ip_addr = "#{SUBNET}.#{ip}"
+      masters += "#{ip_addr},"
+      master.vm.network :private_network, ip: ip_addr
+      if Vagrant.has_plugin?("vagrant-hosts")
+        master.vm.provision :hosts, :sync_hosts => true, :add_localhost_hostnames => false
+      end
+      master.vm.provider :virtualbox do |vb|
+        vb.name = "master#{i}"
+        vb.memory = MASTER_MEMORY
+        vb.cpus = MASTER_CPUS
+      end
+      config.vm.provider :libvirt do |lv|
+        lv.memory = MASTER_MEMORY
+        lv.cpus = MASTER_CPUS
+      end
+      if BIND_PROXY && i == 1
+        # Bind kubectl proxy port
+        master.vm.network :forwarded_port, guest: 8001, host: 8001
+      end
+      # Update OS if UPDATE_OS=true
+      update_os(master.vm)
+      # Provisioning: Master Node
+      args = ["--master", "--nginx-image", NGINX_IMAGE]
+      if !STANDALONE_OPERATOR && i == 1
+        args.push("--operator")
+        args.push("--subnet", SUBNET)
+        args.push("--workers", workers.chop)
+        args.push("--masters", masters.chop)
+      end
+      provision_vm(master.vm, args)
+    end
+  end
+
+  # Operator node, if STANDALONE_OPERATOR=true
+  if STANDALONE_OPERATOR
+    config.vm.define "operator" do |operator|
+      operator.vm.hostname = "operator.vagrant.vm"
+      operator.vm.network :private_network, ip: "#{SUBNET}.100"
+      if Vagrant.has_plugin?("vagrant-hosts")
+        operator.vm.provision :hosts, :sync_hosts => true, :add_localhost_hostnames => false
+      end
+      operator.vm.provider :virtualbox do |vb|
+        vb.name = "operator"
+        vb.memory = OPERATOR_MEMORY
+        vb.cpus = OPERATOR_CPUS
+      end
+      config.vm.provider :libvirt do |lv|
+        lv.memory = OPERATOR_MEMORY
+        lv.cpus = OPERATOR_CPUS
+      end
+      # Update OS if UPDATE_OS=true
+      update_os(operator.vm)
+      # Provisioning: Operator Node
+      args = ["--operator"]
+      args.push("--subnet", SUBNET)
+      args.push("--workers", workers.chop)
+      args.push("--masters", masters.chop)
+      args.push("--nginx-image", NGINX_IMAGE)
+      provision_vm(operator.vm, args)
+    end
+  end
+end
