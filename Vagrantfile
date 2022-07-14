@@ -240,6 +240,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   end
   config.vm.provider :libvirt do |lv|
     lv.nested = true
+    lv.cpu_mode = 'host-passthrough'
   end
 
   # Workers provisioning
