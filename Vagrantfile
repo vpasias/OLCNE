@@ -259,14 +259,14 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         vb.memory = WORKER_MEMORY
         vb.cpus = WORKER_CPUS
         if EXTRA_DISK
-          override.vm.disk :disk, size: '16GB', name: 'extra_disk'
+          override.vm.disk :disk, size: '120GB', name: 'extra_disk'
         end
       end
       config.vm.provider :libvirt do |lv|
         lv.memory = WORKER_MEMORY
         lv.cpus = WORKER_CPUS
         if EXTRA_DISK
-          lv.storage :file, :size => '16G', :type => 'qcow2'
+          lv.storage :file, :size => '120GB', :type => 'qcow2'
         end
       end
       # Update OS if UPDATE_OS=true
