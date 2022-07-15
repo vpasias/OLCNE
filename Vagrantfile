@@ -233,10 +233,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.provider :virtualbox do |vb|
     vb.linked_clone = false
     vb.customize ["modifyvm", :id, "--groups", "/" + VB_GROUP]
-#    vb.customize ["modifyvm", :id, "--chipset", "ich9"]
+    vb.customize ["modifyvm", :id, "--chipset", "ich9"]
     vb.customize ["modifyvm", :id, "--nested-hw-virt", "on"]
-#    vb.customize ["setextradata", :id, "VBoxInternal/CPUM/SSE4.1", "1"]
-#    vb.customize ["setextradata", :id, "VBoxInternal/CPUM/SSE4.2", "1"]      
+    vb.customize ["setextradata", :id, "VBoxInternal/CPUM/SSE4.1", "1"]
+    vb.customize ["setextradata", :id, "VBoxInternal/CPUM/SSE4.2", "1"]      
   end
   config.vm.provider :libvirt do |lv|
     lv.nested = true
